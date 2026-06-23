@@ -1,0 +1,32 @@
+graph LR
+    SAG["Synthetic AG"]
+    RTR4["RTR-4<br/>AS65002"]
+    RTR2["RTR-2<br/>AS65001"]
+    RTR3["RTR-3<br/>AS65001"]
+    RTR1["RTR-1<br/>AS65001"]
+    HOST1["Host-1"]
+    
+    SAG -->|EBGP| RTR4
+    SAG -->|EBGP| RTR2
+    RTR4 -->|ether2<br/>EBGP| RTR2
+    RTR2 -->|ether4<br/>IBGP| RTR1
+    RTR4 -->|EBGP| RTR3
+    RTR3 -->|ether2<br/>IBGP| RTR1
+    RTR1 -->|ether3| HOST1
+    RTR2 -.->|IBGP| RTR3
+    SAG -.-> RTR2
+    RTR2 -.-> RTR1
+    RTR1 -.-> HOST1
+    SAG -.-> RTR4
+    RTR4 -.-> RTR3
+    RTR3 -.-> RTR1
+    
+    linkStyle 8,9 stroke:green,stroke-width:2px
+    linkStyle 11,12,13 stroke:red,stroke-width:2px
+    
+    style SAG fill:#e1f5ff
+    style RTR1 fill:#f5f5f5
+    style RTR2 fill:#f5f5f5
+    style RTR3 fill:#f5f5f5
+    style RTR4 fill:#f5f5f5
+    style HOST1 fill:#e1f5ff
