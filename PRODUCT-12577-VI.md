@@ -2,7 +2,7 @@
 
 ## Glossary
 
- Network: a set of network devices providing conectivity services to clients.
+ Network: a group of network devices providing conectivity services to clients.
 
  Full RCA: High quality root causes:
 
@@ -12,60 +12,18 @@
 
 ## Short Abstract / Blogline
 
-"Network RCA" is an unmature domain. There is no well-know solution we can "implement" and would deliver the "full" promise. This VI describe a framework and name use cases that will be researched. "Network Full RCA" present a scope that makes it a candidate to become part of an eponym Value Pack in FY'28.
+"Network RCA" is an unmature domain. There is no well-know solution we can "implement" and would deliver the "full" promise. This VI describe a framework and name use cases that will be addressed.
 
-Dynatrace intelligence identifies the root cause of physical network problems by correlating device health, configuration (through entity properties), and topology events into a causal chain — starting the journey to bring Dynatrace to feature parity with market leaders (NetAI and Selector AI) in the network RCA domain.
+Dynatrace intelligence identifies the root cause of physical network problems by correlating Health Alerts, Warning Signal, Info events and topology into a causal chain.
+It applies to all scenarios where KPIs of all sorts (OneAgent process to process, NAM, RUM) are assessing the network performance.
+
+It starts the journey to bring Dynatrace to feature parity with market leaders (NetAI and Selector AI) in the network RCA domain. The identified use cases will be gradually addressed by complexifying the analyzers over time while meeting the GA constraints.
 
 It improves [Process network problem enriched with network events](https://dt-rnd.atlassian.net/browse/PRODUCT-15022) and depends on  concepts introduced by it like network device events grouping.
 
 ### Reference
 
 [Network RCA Powerpoint](https://dynatrace-my.sharepoint.com/:p:/p/benoit_lourdelet/IQAaG2J9AXUqTYOK1brYe4AZAb5sNL6JiR_rx1il5oEun4k?e=srB1up)
-
-#### Example Network Topology
-
-This diagram illustrates a multi-hop network path with BGP routing, showing how traffic from a synthetic AG flows through multiple routers across different AS domains to reach Host-1:
-
-```mermaid
-graph LR
-    SAG["Synthetic AG"]
-    RTR4["RTR-4<br/>AS65002"]
-    RTR2["RTR-2<br/>AS65001"]
-    RTR3["RTR-3<br/>AS65001"]
-    RTR1["RTR-1<br/>AS65001"]
-    HOST1["Host-1"]
-    
-    SAG -->|EBGP| RTR4
-    SAG -->|EBGP| RTR2
-    RTR4 -->|ether2<br/>EBGP| RTR2
-    RTR2 -->|ether4<br/>IBGP| RTR1
-    RTR4 -->|EBGP| RTR3
-    RTR3 -->|ether2<br/>IBGP| RTR1
-    RTR1 -->|ether3| HOST1
-    RTR2 -.->|IBGP| RTR3
-    SAG -.-> RTR2
-    RTR2 -.-> RTR1
-    RTR1 -.-> HOST1
-    SAG -.-> RTR4
-    RTR4 -.-> RTR3
-    RTR3 -.-> RTR1
-    
-    linkStyle 8,9 stroke:green,stroke-width:2px
-    linkStyle 11,12,13 stroke:red,stroke-width:2px
-    
-    style SAG fill:#e1f5ff
-    style RTR1 fill:#f5f5f5
-    style RTR2 fill:#f5f5f5
-    style RTR3 fill:#f5f5f5
-    style RTR4 fill:#f5f5f5
-    style HOST1 fill:#e1f5ff
-```
-
-**Legend:**
-- Solid lines: Data forwarding paths
-- Dotted lines: Control plane connections
-- EBGP: External BGP (between different AS domains)
-- IBGP: Internal BGP (within same AS domain)
 
 ## Customer Zero
 
@@ -77,13 +35,11 @@ graph LR
 - **Network Operations (NetOps) engineers** — first responders for physical network incidents, today forced to swivel-chair between Dynatrace and dedicated network tools
 - **Application owners** — recipients of "network problem" alerts who need the Application RCA prolonged to the  individual network device.
 - **SRE / Platform teams** — owners of multi-tool observability stacks where the network is the last unobserved layer in Dynatrace
-- **CIOs / CTOs** — sponsors evaluating consolidation onto a single full-stack observability platform. Once this VI is executed, Dynatrace becomes the uncontested causal  end-to-end RCA leader.
+- **CIOs / CTOs** — sponsors evaluating consolidation onto a single full-stack observability platform. Once this VI is executed, Dynatrace becomes the uncontested causal end-to-end RCA leader.
 
 ## WHY
 
-Today, when Dynatrace intelligence raises a process-to-process "network problem", the analysis stops at the host boundary. The user is told *that* the network is slow or dropping packets, but not *which device, link, or change* in the physical fabric caused it. Network RCA VI ([PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022)) closed part of this gap by surfacing all events in the relevant group of network devices, but the user is still left to read through dozens of syslog messages, interface counters, and config changes to find the actual culprit.
-
-Aside from, process-to-process "network problem", "network full RCA" is a domain per itself and apply to all scenario where KPIs of all sorts (NAM, RUM) are measuring the network performance.
+Today, when Dynatrace intelligence raises a process-to-process "network problem", the analysis stops at the host boundary. The user is told *that* the network is slow or dropping packets, but not *which device, link, or change* in the physical network caused it. Network RCA VI ([PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022)) closed part of this gap by surfacing all events in the relevant group of network devices, but the user is still left to read through dozens of events to find the actual culprit.
 
 ### Where It Hurts
 
@@ -91,26 +47,26 @@ Aside from, process-to-process "network problem", "network full RCA" is a domain
 
 - **What happens:** Dynatrace intelligence lists every event from every devices in the network area between two processes
 - **Where it shows up:** Network problem details, handover tickets to NetOps
-- **User symptoms:** 20+ events to manually correlate, MTTR measured in hours, false escalations
+- **User symptoms:** potentially 20+ events to manually correlate, long MTTR
 
 #### No causal chain across topology
 
-- **What happens:** A single root event (e.g. a flapping uplink, an OSPF adjacency reset, a BGP withdraw) cascades into many symptoms; Dynatrace shows the symptoms, not the cause
+- **What happens:** A single root event (e.g. a flapping uplink, an OSPF adjacency reset, a BGP peer down, etc.), cascades into many symptoms; Dynatrace shows the symptoms, not the cause
 - **Where it shows up:** Multiple parallel "network problem" alerts, multiple paging events
-- **User symptoms:** Alert fatigue, parallel war-rooms for the same underlying fault
+- **Symptoms:** Alert fatigue, parallel war-rooms for the same underlying fault
 
 #### Competitive analysis
 
 - **What happens:** A crowded field of vendors (Selector AI, NVIDIA, NetAI, SolarWinds, LogicMonitor, SumoLogic, Juniper Mist, NetBrain, Kentik) already delivers some form of causal or correlation-based network RCA. See the **Competitive Landscape** section for the full capability matrix.
 - **Where it shows up:** Difficulties to add networking to end-to-end deals by the lack of Dynatrace differentiators in this domain. Lack of a competitive edge with DDOG in the infrastructure area.
-- **User symptoms:** Dynatrace cannot credibly position as "true full-stack Dynatrace Intelligence" in network-heavy accounts.
+- **Symptoms:** Dynatrace cannot credibly position as "true full-stack Dynatrace Intelligence" in network-heavy accounts.
 
 ### Why now?
 
 - [PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022) (Application service problem enrichement) and [PRODUCT-17449](https://dt-rnd.atlassian.net/browse/PRODUCT-17449) (HA&WS&INFO Phase II) are in flight — this VI is the natural next step that converts those building blocks into customer value.
 - Physical topology is available, part of June'26 rally.
-- Network-RCA is a fast-moving market segment; delaying entry widens the gap vs. the field (Selector, NVIDIA, NetAI in particular)
-- DDOG does not show sign of interst in the domain. The assumption is that the lack the needed infrastructure similar to Grail. Given the span of the execution of such VI, it is better to start now.
+- Network-RCA is a fast-moving market segment; delaying entry widens the gap vs. specialized tools unique capabilities.
+- DDOG does not show sign of interst in the domain. The assumption is that the lack the needed infrastructure similar to Grail. Given the projected long time span of the  full execution of this VI, it is better to start now.
 
 ## Competitive Landscape
 
@@ -136,6 +92,27 @@ Adapted from competitive deck slides 4 and 60. Legend: ● = strong / native, �
 
 ## Use Cases
 
+### Example
+
+This diagram illustrates a multi-hop network path with BGP routing, showing how traffic from a synthetic AG flows through multiple routers across different AS domains to reach Host-1.
+
+The Green dotted line is the expected NAM ping path. The Red dotted line reflects the new path after the configuaration change rerouted the NAM ping packets.
+
+<img src="Diagrams/ppt-export-RCA.png" width="70%" alt="Network RCA Diagram">
+
+***Legend:***
+
+- Solid lines: Data forwarding paths
+- Dotted lines: Control plane connections
+- EBGP: External BGP (between different AS domains)
+- IBGP: Internal BGP (within same AS domain)
+
+#### Event graphs
+
+Based on a prototype processing the events collected in the example above, for illustration purpose only.
+
+<img src="Diagrams/RCAgraph.png" width="45%" alt="Network RCA events graph">
+
 ### Datacenter & Fabric Operations
 
 - **UC-DC1 — Triage a fabric incident in minutes, not hours.** *(NOC engineer, datacenter provider)* An alert storm hits at 02:00. Engineer opens one Davis problem and sees: the single physical root cause (e.g. spine-leaf uplink flap), every downstream symptom merged in, the impacted applications. No swivel-chair across 5 dashboards. *(Mirrors Selector "Global Digital Infrastructure Provider" case — alert fatigue elimination, automated triage.)*
@@ -156,7 +133,7 @@ Adapted from competitive deck slides 4 and 60. Legend: ● = strong / native, �
 
 ### WAN
 
-- **UC-WAN1 — SD-WAN underlay/overlay correlation.** *(NetOps, managed service provider)* SD-WAN overlay shows a tunnel issue; the real cause is in the underlay ISP path. Davis correlates the two (where underlay is observed).
+- **UC-WAN1 — SD-WAN underlay/overlay correlation.** *(NetOps, managed service provider)* SD-WAN overlay shows a tunnel issue; the real cause is in the underlay ISP path. Dynatrace intelligence correlates the two (where underlay is observed).
 
 ## Functional Requirements / Solution Journey
 
@@ -164,13 +141,11 @@ Adapted from competitive deck slides 4 and 60. Legend: ● = strong / native, �
 
 The capabilities below describe what the system does to deliver the user-oriented use cases above.
 
-1. **SC1 — Causal root cause on a network problem.** When Davis raises a process-to-process "network problem", the user sees a ranked list of candidate root-cause events in the underlying physical network, each with a confidence score and an explanation of the causal link to the symptom.
-2. **SC2 — Topology-aware event correlation.** Multiple "network problem" alerts sharing the same physical root cause are merged into a single Davis problem, with the root cause shown once.
-3. **SC3 — Evidence trail.** For each candidate root cause, the user can drill into the supporting evidence: device, interface, timestamp, raw syslog / metric / SNMP trap, and the affected topology segment.
-4. **SC4 — Handover-ready report.** The application owner can export or share the causal chain (root cause + evidence + impacted processes) as a single artifact suitable for a NetOps ticket.
-5. **SC5 — Coverage across path types.** Causal RCA works for paths containing routers (L3), pure L2 switches, and virtualized fabrics (VMware NSX, Nutanix AHV, Cisco ACI EPGs, Storage).
-6. **SC6 — Multi-vendor fabric support.** Causal RCA operates on devices monitored by Dynatrace network extensions across at least Cisco (ACI / NX-OS / IOS-XE), Arista EOS, and Juniper Junos at GA.
-7. **SC8 — Network-healthy verdict.** When the analyzer finds no plausible network root cause, it returns an explicit "network healthy on this path" verdict with the signals it considered (supports UC-SRE1).
+- **SC1 — Causal root cause on a network problem.** When Davis raises a process-to-process "network problem", the user sees a ranked list of candidate root-cause events in the underlying physical network, each with a confidence score and an explanation of the causal link to the symptom.
+- **SC2 — Evidence trail.** For each candidate root cause, the user can drill into the supporting evidence: device, interface, timestamp, raw syslog / metric / SNMP trap, and the affected topology segment.
+- **SC3 — Handover-ready report.** The application owner can export or share the causal chain (root cause + evidence + impacted processes) as a single artifact suitable for a NetOps ticket.
+- **SC4 — Multi-vendor device support.** Causal RCA operates on devices monitored by Dynatrace network extensions implementing generic entities.
+- **SC5 — Network-healthy verdict.** When the analyzer finds no plausible network root cause, it returns an explicit "network healthy on this path" verdict with the signals it considered (supports UC-SRE1).
 
 ### Solution Concept
 
@@ -189,15 +164,9 @@ The capabilities below describe what the system does to deliver the user-oriente
 - The top-ranked event(s) are surfaced inside the existing "Application network" or "KPI not met" Problem with a "Root cause" section and a "View causal chain" action.
 - Symptom-only events are demoted to "Related events".
 
-#### Network Problem
-
-- INFO event defined in Network Problem enriched with  network device events "Network Problem enriched with  network device events" [PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022)
-- NAM failure
-- Problem created by Nework device Healh Alerts
-
 #### Identified root cause
 
-- Nework device related Info event, Business events
+- Nework device related Info event, Business events, Health alerts.
 
 #### Analyzer components
 
@@ -228,58 +197,66 @@ The capabilities below describe what the system does to deliver the user-oriente
 - VLAN
 - BGP autonomous system
 
+### Implementation
+
+#### Phase 0
+
+Time based event gathering: Provided by Network RCA VI ([PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022))
+
+#### Phase I
+
+One hop events, causal pattern , Phase 0
+
+See the example diagram above.
+
+#### Phase II
+
+Full causality graph traversal
+
 ## Non-Functional Requirements
 
 - **Scalability:** Analyzer must handle network areas up to 100 devices and process paths up to 10 hops.
 - **Accuracy:** For supported scenarios (see SC5), top-1 candidate matches operator-identified root cause in ≥70% of validated incidents; top-3 in ≥90%.
 - **Explainability:** Every ranked candidate must expose the rule(s) and signals that contributed to its score — no black-box scoring.
 - **Reliability:** If the causal analyzer fails or times out, the existing [PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022) "all events in network area" view must remain available (graceful degradation).
-- **Security / Tenant isolation:** Causal analysis must respect existing entity-level permissions; users see only events for devices they are entitled to view.
-- **Cost-awareness:** Analyzer runs based on network problem trigger, not as a continuous stream.
+- **Cost-awareness:** Analyzer runs based on network problem trigger or at minutes interval, not as a continuous stream.
 
 ## Enablement Requirements
 
 - **Support:** NetOps-focused runbook; training session for L2/L3 support on interpreting causal chains and false-positive handling
-- **Internal Adoption:** Enabled by default for EDE; dog-fooded by Dynatrace IT NetOps for one quarter before public preview
-- **Pricing:** Analyzers are not zero-rated. 
-- **Marketing:** Launch blog ("Davis goes full-stack — now down to the wire"), Highspot battlecard vs. NetAI / Selector, demo video, Perform 2027 session pitch
+- **Internal Adoption:** Used by the EDE team as early as possible.
+- **Pricing:** Analyzers are not zero-rated.
+- **Marketing:** Launch blog ("Dynatrace intelligence goes full-stack — now down to the wire"), Highspot battlecard vs. NetAI / Selector, demo video, Perform 2027 session pitch
 - **Sales:** Sales deck update, competitive playbook (NetAI / Selector), ROI calculator (MTTR reduction, tool consolidation savings)
 
 ## E2E Acceptance Criteria
 
-1. **Root cause surfaced:** For every supported "network problem" (Infra slowness, Infra packet drops, Full-stack slowdown, Full-stack error), the problem card displays a "Root cause" section with at least one ranked candidate event from the physical network — or an explicit "No root cause identified" state with reasoning.
+1. **Root cause surfaced:** For every supported "network problem" , the problem card displays a "Root cause" section with at least one ranked candidate event from the physical network — or an explicit "No root cause identified" state with reasoning.
 2. **Causal chain visible:** User can open a causal-chain view showing root cause → intermediate signals → impacted processes, with topology context.
 3. **Multi-symptom merge:** When ≥2 simultaneous "network problem" alerts share the same root cause, Davis merges them into a single problem; merge decisions are explainable.
-4. **Path-type coverage:** AC1–AC3 are satisfied for L3 router paths, pure L2 switch paths, and virtualized fabric paths (VMware, Nutanix, Cisco ACI).
-5. **Latency:** P95 time-to-root-cause ≤ 60s; measured continuously and exposed as a self-monitoring metric.
-6. **Accuracy gate:** On the Customer-Zero validation set (≥30 labeled incidents), top-1 ≥ 70%, top-3 ≥ 90%; below threshold blocks GA.
-7. **Explainability:** Each candidate root cause exposes contributing rules and signals; no candidate is shown without justification.
-8. **Graceful degradation:** If causal analysis fails, the existing [PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022) "network area events" view is shown unchanged.
-9. **Permissions:** Users without access to a given device do not see its events in the causal chain.
-10. **Handover artifact:** User can export the causal chain (root cause + evidence + impacted processes) as a shareable link or downloadable report.
-11. **Telemetry:** Adoption, accuracy feedback (thumbs up/down on candidates), latency, and failure rates are tracked.
+4. **Accuracy gate:** On the Customer-Zero validation set (≥30 labeled incidents), top-1 ≥ 70%, top-3 ≥ 90%; below threshold blocks GA.
+5. **Graceful degradation:** If causal analysis fails, the existing [PRODUCT-15022](https://dt-rnd.atlassian.net/browse/PRODUCT-15022) "network area events" view is shown unchanged.
 
 ## Customer Zero Planning
 
-- **Phase 1 (Internal — EDE):** Enable on Dynatrace IT ACI fabrics in Linz; collect ≥30 labeled incidents over one quarter; iterate on ranking model.
+- **Phase 1 (Internal — EDE):** Enable on Dynatrace EDE tenants; collect ≥30 labeled incidents over one quarter; iterate on ranking model.
 - **Phase 2 (Private Preview):** Invite 2–3 design-partner customers with mature physical-network monitoring; weekly feedback sessions for one quarter.
 - **Success criteria for promotion to Public Preview:** AC6 (accuracy gate) met on combined Phase 1 + Phase 2 incidents; ≥3 documented MTTR-reduction case studies.
 
 ## E2E Demo (for acceptance)
 
-1. Set up an environment where two monitored processes communicate across a physical ACI fabric (Customer-Zero topology).
-2. Inject a controlled fault on a fabric uplink (interface flap or BGP adjacency reset).
+1. Set up an environment where two monitored processes communicate across a physical network.
+2. Inject a controlled fault on the network.
 3. Observe Dynatrace raise a "network problem" between the two processes within the expected Davis cycle.
 4. Open the problem and show the "Root cause" section: top candidate = the injected fault, with explanation.
 5. Open the causal-chain view: root cause → intermediate signals → impacted processes.
 6. Trigger a second, parallel symptom from the same fault and show that Davis merges both into one problem.
-7. Export the causal chain and attach to a (mock) NetOps ticket.
 
 ## Out of Scope
 
-- Internet Service Provider, 5G  core networks
+- Internet Service Provider, 5G  core networks.
 - Wifi RCA (Juniper Mist, Arista) — vendor-native depth not pursued
-- Generic AIOps event-correlation tool-of-tools (BigPanda) — Dynatrace produces signals, BigPanda customers can keep BigPanda
+- Generic AIOps event-correlation tool-of-tools.
 - Network automation runbooks (NetBrain) — out of charter for this VI
 - No integration with generic third party topology provider expect the one coming from supported extensions like Cisco Catalyst Center, Aruba Central, Cisco ACI, etc.
 
@@ -297,6 +274,5 @@ Evaluated 3–6 months post-GA:
 ## Cost Analysis
 
 - **Customers:** Follows the analyzer cost structure.
-- **Dynatrace (compute):** Analyzer runs only on-demand per network problem. Estimated marginal DQL cost: small (bounded by path length × time window × signals-per-device). Expected to be well within existing Davis analyzer budgets.
-- **Dynatrace (R&D):** Causal-inference component is the main new investment; reuses Davis correlation framework where possible.
+- **Dynatrace (compute):** Analyzer runs only on-demand per network problem. Estimated marginal DQL cost: small (bounded by path length × time window × signals-per-device). Expected to be well within existing analyzer budgets.
 - **Savings:** Reduced support load for "why did the network problem alert not point to anything?" cases; reduced churn risk in network-heavy accounts.
