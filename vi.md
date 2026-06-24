@@ -6,9 +6,9 @@
 
  Full RCA: High quality root causes:
 
-- Actionability: is it linked to a remediation with "high" probability
-- Conclusiveness: is it a terminal root cause. At this time, we dont have an intentin to further
-- Low "false positive" optimization. Compromise with "false negative"
+- Actionability: is it linked to a remediation with "high" probability?
+- Conclusiveness: is it a terminal root cause?
+- Low "false positive" optimization. Compromise with "false negative".
 
 ## Short Abstract / Blogline
 
